@@ -1,0 +1,223 @@
+/* General Styling */
+.company-auth-body {
+  background-image: url("C:\Users\muhammad\Desktop\FYP\dsm\public\LoginBgimg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.company-auth-form {
+  width: 100%;
+  max-width: 450px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  transition: all 0.3s ease;
+}
+
+.company-auth-form:hover {
+  transform: scale(1.02);
+}
+
+.company-auth-tab-group {
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 2px solid #ddd;
+  margin-bottom: 15px;
+  list-style: none;
+  padding: 0;
+}
+
+.company-auth-tab {
+  padding: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #555;
+  font-weight: bold;
+  text-align: center;
+  transition: color 0.3s, border-color 0.3s;
+}
+
+.company-auth-tab.active {
+  border-bottom: 4px solid #337dfd;
+  color: #337dfd;
+}
+
+.company-auth-tab:hover {
+  color: #005bcc;
+}
+
+.company-auth-tab-content {
+  padding: 15px;
+}
+
+.company-auth-field-wrap {
+  margin-bottom: 10px;
+}
+
+.company-auth-field-wrap label {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+  color: #333;
+}
+
+.company-auth-field-wrap input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.company-auth-field-wrap input:focus {
+  border-color: #337dfd;
+  outline: none;
+  box-shadow: 0 0 8px rgba(51, 125, 253, 0.5);
+}
+
+.company-auth-button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #337dfd, #005bcc);
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.company-auth-button:hover {
+  background: linear-gradient(45deg, #005bcc, #003b9b);
+  transform: translateY(-2px);
+}
+
+.company-auth-button.primary {
+  background: linear-gradient(to right, #337dfd, #1a73e8);
+}
+.go-back{
+  background: linear-gradient(to right, #abacae, #ffffff);
+  width: 100%;
+}
+.or-divider {
+  text-align: center;
+  margin: 15px 0;
+  font-size: 13px;
+  color: #666;
+  position: relative;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #ddd;
+}
+
+.or-divider::before {
+  left: 0;
+}
+
+.or-divider::after {
+  right: 0;
+}
+
+.error-message {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.company-auth-forgot-password {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.company-auth-forgot-password a {
+  color: #337dfd;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.company-auth-forgot-password a:hover {
+  color: #005bcc;
+  text-decoration: underline;
+}
+
+/* OTP Verification */
+.company-auth-otp-verification {
+  text-align: center;
+}
+
+.company-auth-otp-verification h2 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.company-auth-otp-verification input {
+  width: 90%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.company-auth-otp-verification button {
+  background: linear-gradient(to right, #337dfd, #1a73e8);
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.3s;
+}
+
+.company-auth-otp-verification button:hover {
+  background: linear-gradient(to right, #005bcc, #003b9b);
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .company-auth-form {
+    padding: 15px;
+    max-width: 85%;
+  }
+
+  .company-auth-tab {
+    font-size: 14px;
+    padding: 6px;
+  }
+
+  .company-auth-field-wrap input {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .company-auth-button {
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  .company-auth-otp-verification input {
+    width: 95%;
+  }
+}

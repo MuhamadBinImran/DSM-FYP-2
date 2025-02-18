@@ -1,0 +1,139 @@
+/* Background Container */
+.choose-role-container {
+    background: 
+      url("C:\Users\muhammad\Desktop\FYP\dsm\public\LoginBgimg.jpg") center/cover no-repeat;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Card */
+  .choose-role-card {
+    background: #ffffff;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border-radius: 16px;
+    padding: 2.5rem;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+    animation: fadeIn 1s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Logo */
+  .choose-role-logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .choose-role-logo {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    border-radius: 50%;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Title and Subtitle */
+  .choose-role-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 0.5rem;
+  }
+  
+  .choose-role-subtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-bottom: 2rem;
+  }
+  
+  /* Role Options */
+  .choose-role-options {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .choose-role-button {
+    width: 120px;
+    height: 150px;
+    background: #f3f4f6;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s, background 0.3s, border-color 0.3s;
+    cursor: pointer;
+  }
+  
+  .choose-role-button:hover {
+    transform: translateY(-5px);
+  }
+  
+  .role-selected {
+    background: #e0f2fe;
+    border-color: #2563eb;
+    box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+  }
+  
+  .role-icon {
+    width: 40px;
+    height: 40px;
+    color: #6b7280;
+    transition: color 0.3s;
+  }
+  
+  .icon-selected {
+    color: #2563eb;
+  }
+  
+  .role-label {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  
+  /* Continue Button */
+  .choose-role-continue-button {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 8px;
+    transition: background 0.3s, color 0.3s, opacity 0.3s;
+  }
+  
+  .button-enabled {
+    background: linear-gradient(to right, #60a5fa, #3b82f6);
+    color: #ffffff;
+    cursor: pointer;
+  }
+  
+  .button-enabled:hover {
+    opacity: 0.9;
+  }
+  
+  .button-disabled {
+    background: #d1d5db;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+  
