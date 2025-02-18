@@ -52,7 +52,7 @@ git init
 ```
 
 ```bash
-git remote add origin https://github.com/Saadnadeem07/NueroAssess-Dyslexia-Dysgraphia.git
+git remote add origin https://github.com/MuhamadBinImran/DSM-FYP-2.git
 ```
 
 ---
