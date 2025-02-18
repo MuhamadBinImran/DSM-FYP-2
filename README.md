@@ -91,6 +91,6 @@ npm install
 # 🧑‍🤝‍🧑 Contributors
 
 <br>
-Anas Abdur Rehman (@) - Collaborator
+Anas Abdur Rehman (@anasrana237) - Collaborator
 <br>
-Kashif Naseer(@) - Collaborator
+Kashif Naseer(@kashifnaseer770) - Collaborator
