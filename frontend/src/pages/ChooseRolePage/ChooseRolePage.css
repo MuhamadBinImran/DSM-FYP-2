@@ -1,7 +1,7 @@
 /* Background Container */
 .choose-role-container {
     background: 
-      url("C:\Users\muhammad\Desktop\FYP\dsm\public\LoginBgimg.jpg") center/cover no-repeat;
+      url("E:\github_FYP\frontend\public\LoginBgimg.jpg") center/cover no-repeat;
     height: 100vh;
     display: flex;
     justify-content: center;

@@ -12,8 +12,13 @@ import {
   Award,
   TrendingUp
 } from "lucide-react";
+
 import { useNavigate } from "react-router-dom";
 import "../UserDashboard/userdcss/userd.css";
+
+
+
+
 
 
 const userProfile = {
@@ -74,6 +79,7 @@ const JobItem = ({ job, onApply }) => (
   </li>
 );
 
+
 // Profile Dropdown Component
 const ProfileDropdown = ({
   userProfile,
@@ -100,6 +106,7 @@ const ProfileDropdown = ({
         </div>
         <div className="dropdownio_dividerz"></div>
         <button onClick={() => navigate("/profile")}>View Profile</button>
+
         <button onClick={() => navigate("/settings")}>Account Settings</button>
         <div className="dropdownio_dividerz"></div>
         <button className="logouto_btnz" onClick={handleLogout}>

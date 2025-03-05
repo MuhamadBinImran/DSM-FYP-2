@@ -4,6 +4,8 @@ import UserSignup from "./pages/UserSignup";
 import CompanySignup from "./pages/CompanySignup";
 import CompanyDashboard from "./pages/CompanyDashboard/CompanyDashboard";
 import UserDashboard from "./pages/UserDashboard/UserDashboard";
+import Profile from "./pages/UserProfile/Profile"; 
+
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 function App() {
@@ -47,6 +49,10 @@ function App() {
       {
         path: "/user-dashboard",
         element: <UserDashboard />, // Add route for UserDashboard
+      },
+      {
+        path: "/profile", // ✅ Add the profile route
+        element: <Profile />,
       },
     ],
     {
