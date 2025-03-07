@@ -1,4 +1,4 @@
-## NEW MEMBER KAY LIYE [Project aonay Laptop par chalana hay..!]
+## NEW MEMBER KAY LIYE [Project apnay Laptop par chalana hay..!]
 1- Create a folder <br>
 2- Open it in vscode <br>
 3- Open Terminal and run these commands <br>
