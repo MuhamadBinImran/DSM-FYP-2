@@ -1,5 +1,3 @@
-# 🧠 Dynamic Skill Matching and Skill Enhancement System
-
 ## NEW MEMBER KAY LIYE [Project aonay Laptop par chalana hay..!]
 1- Create a folder <br>
 2- Open it in vscode <br>
