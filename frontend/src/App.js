@@ -5,7 +5,8 @@ import CompanySignup from "./pages/CompanySignup";
 import CompanyDashboard from "./pages/CompanyDashboard/CompanyDashboard";
 import UserDashboard from "./pages/UserDashboard/UserDashboard";
 import Profile from "./pages/UserProfile/Profile"; 
-
+import Admin from "./pages/Admin/Admin-Login/Admin-Login";
+import AdminDashboard from "./pages/Admin/Admin-Dashboard/Admin-Dashboard";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 function App() {
@@ -53,6 +54,14 @@ function App() {
       {
         path: "/profile", // ✅ Add the profile route
         element: <Profile />,
+      },
+      {
+        path: "/Admin-Login", // ✅ Add the profile route
+        element: <Admin />,
+      },
+      {
+        path: "/Admin-Dashboard", // ✅ Add the profile route
+        element: <AdminDashboard />,
       },
     ],
     {

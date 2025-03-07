@@ -6,11 +6,15 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Company = require("./models/Company");
-const User = require("./models/User"); // New User model
+const User = require("./models/User");
 const nodemailer = require("nodemailer");
 const OTP = require("./models/OTP");
 const Job = require("./models/Job");
+const Admin = require('./models/Admin');
+const Course = require('./models/courses');
 const { body, validationResult } = require("express-validator"); // Add this to use validation for user routes
+const multer = require("multer");
+
 
 dotenv.config();
 const app = express();
@@ -635,6 +639,153 @@ app.post("/api/user/reset-password", async (req, res) => {
   } catch (error) {
     console.error("Error during password reset:", error);
     res.status(500).json({ message: "Server error during password reset." });
+  }
+});
+
+//--------------------------------------------ADMIN----------------------------------------------
+
+// backend/server.js
+
+app.post('/api/admin/login', async (req, res) => {
+  const { email, password } = req.body;
+  const normalizedEmail = email.trim().toLowerCase();
+
+  try {
+    const admin = await Admin.findOne({ email: normalizedEmail });
+
+    console.log("🟢 Email provided:", normalizedEmail);
+    console.log("🟢 Admin found in DB?:", admin ? "Yes" : "No");
+
+    if (!admin) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+    console.log("🟢 Password match?:", isMatch);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    res.status(200).json({ message: "Login successful" });
+
+  } catch (error) {
+    console.error("🚨 Server error:", error);
+    res.status(500).json({ message: "Server error during login" });
+  }
+});
+
+
+// --------------------------------------------COURSE MANAGEMENT----------------------------------------------
+
+// Multer Storage for File Uploads (Thumbnails)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => cb(null, file.originalname),
+});
+
+const upload = multer({ storage });
+
+//  API to Upload a Course (With Course Link Support)
+app.post('/api/courses', upload.single('thumbnail'), async (req, res) => {
+  try {
+    const { title, description, category, duration, courseLink } = req.body;
+    const thumbnail = req.file ? req.file.filename : ''; // Store file name
+
+    const newCourse = new Course({ title, description, category, duration, thumbnail, courseLink });
+    await newCourse.save();
+    res.status(201).json({ message: 'Course uploaded successfully' });
+
+  } catch (error) {
+    res.status(500).json({ error: 'Error uploading course' });
+  }
+});
+
+//  API to Fetch All Courses
+app.get('/api/courses', async (req, res) => {
+  try {
+    const courses = await Course.find();
+    res.json(courses);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching courses' });
+  }
+});
+
+//  API to Delete a Course
+app.delete('/api/courses/:id', async (req, res) => {
+  try {
+    await Course.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Course deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error deleting course' });
+  }
+});
+
+//  API to Update a Course
+app.put('/api/courses/:id', upload.single('thumbnail'), async (req, res) => {
+  try {
+    const { title, description, category, duration, courseLink } = req.body;
+    const thumbnail = req.file ? req.file.filename : req.body.thumbnail;
+
+    const updatedCourse = await Course.findByIdAndUpdate(
+      req.params.id,
+      { title, description, category, duration, thumbnail, courseLink },
+      { new: true }
+    );
+
+    res.json({ message: 'Course updated successfully', updatedCourse });
+
+  } catch (error) {
+    res.status(500).json({ error: 'Error updating course' });
+  }
+});
+
+
+// --------------------------------------------User MANAGEMENT----------------------------------------------
+
+//  API to Fetch All Users
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Error fetching users" });
+  }
+});
+
+//  API to Delete a User by ID
+app.delete("/api/users/:id", async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Error deleting user" });
+  }
+});
+
+
+
+// --------------------------------------------JOB MANAGEMENT----------------------------------------------
+
+
+
+// ✅ API to Fetch All Jobs
+app.get("/api/jobs", async (req, res) => {
+  try {
+    const jobs = await Job.find();
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: "Error fetching jobs" });
+  }
+});
+
+// ✅ API to Delete a Job by ID
+app.delete("/api/jobs/:id", async (req, res) => {
+  try {
+    await Job.findByIdAndDelete(req.params.id);
+    res.json({ message: "Job deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Error deleting job" });
   }
 });
 

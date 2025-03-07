@@ -216,3 +216,34 @@ body {
   background-color: #1abc9c;
 }
 
+/* Chatbot Page Layout */
+.chatbot-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 40px 20px;
+}
+
+/* Header Section */
+.chatbot-header {
+  background: linear-gradient(90deg, #1E4DB7, #307AFF);
+  color: white;
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+/* Chatbot Box */
+.chatbot-container {
+  width: 100%;
+  max-width: 900px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
