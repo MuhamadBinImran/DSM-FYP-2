@@ -104,6 +104,15 @@ export default function Sidebar({ activeTab, setActiveTab, handleLogout }) {
             <span>Post a Job</span>
             <div className="nav-indicator"></div>
           </button>
+          <button
+  className={`nav-button ${activeTab === "chatbot" ? "active" : ""}`}
+  onClick={() => setActiveTab("chatbot")}
+>
+  <Users className="icon" size={20} />
+  <span>Chatbot</span>
+  <div className="nav-indicator"></div>
+</button>
+
         </div>
       </nav>
 

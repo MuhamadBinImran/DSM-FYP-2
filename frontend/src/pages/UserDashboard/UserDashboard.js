@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import {
   Briefcase,
   Book,
@@ -15,6 +16,7 @@ import {
 
 import { useNavigate } from "react-router-dom";
 import "../UserDashboard/userdcss/userd.css";
+import Chatbot from "../CHATBOT/Chatbot";
 
 
 
@@ -336,6 +338,7 @@ export default function UserDashboard() {
           </div>
         );
       case "recommendedJobs":
+
         return (
           <div className="contentio_sectionz">
             <h2>Recommended Jobs</h2>
@@ -359,6 +362,13 @@ export default function UserDashboard() {
             )}
           </div>
         );
+        case "chatbot":
+  return (
+    <div className="contentio_sectionz chatbot-container">
+      <h2>AI Chatbot Assistant</h2>
+      <Chatbot />
+    </div>
+  );
       default:
         return <div>Invalid tab selected</div>;
     }
@@ -372,24 +382,28 @@ export default function UserDashboard() {
         </div>
         
         <div className="sidebario_menuz">
-          {["tasks", "learningPaths", "recommendedJobs"].map((tab, index) => (
+          {["tasks", "learningPaths", "recommendedJobs", "chatbot"].map((tab, index) => (
             <button
-              key={index}
-              className={`menuz_itemz ${activeTab === tab ? "activio" : ""}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab === "tasks" && <CheckSquare className="menuz_iconz" />}
-              {tab === "learningPaths" && <Book className="menuz_iconz" />}
-              {tab === "recommendedJobs" && <Target className="menuz_iconz" />}
-              <span>
-                {tab === "tasks"
-                  ? "Tasks"
-                  : tab === "learningPaths"
-                  ? "Learning Paths"
-                  : "Jobs"}
-              </span>
-              <ChevronRight className="arrowo_iconz" />
-            </button>
+            key={index}
+            className={`menuz_itemz ${activeTab === tab ? "activio" : ""}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab === "tasks" && <CheckSquare className="menuz_iconz" />}
+            {tab === "learningPaths" && <Book className="menuz_iconz" />}
+            {tab === "recommendedJobs" && <Target className="menuz_iconz" />}
+            {tab === "chatbot" && <User className="menuz_iconz" />} 
+            <span>
+              {tab === "tasks"
+                ? "Tasks"
+                : tab === "learningPaths"
+                ? "Learning Paths"
+                : tab === "recommendedJobs"
+                ? "Jobs"
+                : "Chatbot"} {/* ✅ Fix menu name */}
+            </span>
+            <ChevronRight className="arrowo_iconz" />
+          </button>
+          
           ))}
           <button className="menuz_itemz logouto_btnz" onClick={handleLogout}>
             <LogOut className="menuz_iconz" />

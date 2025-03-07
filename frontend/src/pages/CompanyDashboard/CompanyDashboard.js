@@ -6,6 +6,8 @@ import PostedJobs from "./PostedJobs";
 import AvailableCandidates from "./AvailableCandidates";
 import PostJobForm from "./PostJobForm";
 import "./CompanyDashboard.css"
+import Chatbot from "../CHATBOT/Chatbot"; // Adjust path if needed
+
 export default function CompanyDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const navigate = useNavigate();
@@ -38,6 +40,16 @@ export default function CompanyDashboard() {
         return <AvailableCandidates />;
       case "postJob":
         return <PostJobForm />;
+        case "chatbot":
+          return (
+            <div className="chatbot-page">
+              
+              <div className="chatbot-container">
+                <Chatbot />
+              </div>
+            </div>
+          );
+        
       default:
         return <p>Invalid tab selected</p>;
     }
