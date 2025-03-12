@@ -1,221 +1,247 @@
-// import React, { useState, useEffect } from "react";
-// import axios from "axios";
-// import "./CompanyDashboard.css";
-
-// const Base_Url = 'http://localhost:5000'; // Ensure this is your correct backend URL
-
-// export default function CompanyDashboard() {
-//   const [stats, setStats] = useState({
-//     totalJobs: 0,
-//     totalApplications: 0,
-//     totalUsers: 0,
-//   });
-//   const [error, setError] = useState("");
-
-//   // Fetch company stats when the component is mounted
-//   useEffect(() => {
-//     const fetchStats = async () => {
-//       try {
-//         const response = await axios.get(`${Base_Url}/api/company/stats`);
-//         setStats(response.data);  // Store the stats data in state
-//       } catch (err) {
-//         setError(err.response ? err.response.data.message : 'Error fetching stats');
-//       }
-//     };
-  
-//     fetchStats();
-//   }, []);
-
-//   return (
-//     <div>
-//       <h2>Company Stats</h2>
-//       {error && <div className="error-message">{error}</div>}
-//       <div className="stats-grid">
-//         <div className="stat-card">
-//           <div className="stat-icon">📊</div> {/* You can use an icon or image here */}
-//           <div className="stat-info">
-//             <p className="stat-label">Total Jobs</p>
-//             <p className="stat-value">{stats.totalJobs}</p>
-//           </div>
-//         </div>
-  
-//         <div className="stat-card">
-//           <div className="stat-icon">📝</div>
-//           <div className="stat-info">
-//             <p className="stat-label">Total Applications</p>
-//             <p className="stat-value">{stats.totalApplications}</p>
-//           </div>
-//         </div>
-  
-//         <div className="stat-card">
-//           <div className="stat-icon">👥</div>
-//           <div className="stat-info">
-//             <p className="stat-label">Total Users</p>
-//             <p className="stat-value">{stats.totalUsers}</p>
-//           </div>
-//         </div>
-  
-//         {/* Add more cards as needed */}
-//       </div>
-//     </div>
-//   );
-  
-// }
-
-
-
-// import React, { useState, useEffect } from "react";
-// import axios from "axios";
-// import "./CompanyDashboard.css";
-
-// const base_url = 'http://localhost:5000';
-
-// const CompanyStats = () => {
-//   const [stats, setStats] = useState({ jobCount: 0, userCount: 0, totalRevenue: 0, activeJobs: 0 });
-
-//   useEffect(() => {
-//     const fetchStats = async () => {
-//       const response = await fetch(`${base_url}/api/company/stats`);
-//       const data = await response.json();
-//       setStats(data.stats); // Assuming the response structure has the stats object
-//     };
-
-//     fetchStats();
-//   }, []);
-
-//   return (
-//     <div className="dashboard-container">
-//       <h3 className="dashboard-title">Company Dashboard</h3>
-//       <div className="cards-container">
-//         <div className="card">
-//           <div className="card-title">Available Jobs</div>
-//           <div className="card-content">{stats.jobCount}</div>
-//         </div>
-//         <div className="card">
-//           <div className="card-title">Users Count</div>
-//           <div className="card-content">{stats.userCount}</div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default CompanyStats;
-
-
 import React, { useState, useEffect } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Users, Briefcase, DollarSign } from 'lucide-react';
-import "./DashboardStats.css"
+import axios from "axios";
+import { Briefcase, Users, CheckCircle, Clock, Building2, Mail, MapPin, Globe, Phone, Calendar, AlertCircle } from "lucide-react";
+import "./DashboardStats.css";
 
-const base_url = 'http://localhost:5000';
-
-const CompanyStats = () => {
-  const [stats, setStats] = useState({ 
-    jobCount: 0, 
-    userCount: 0, 
-    totalRevenue: 0, 
-    activeJobs: 0 
+export default function DashboardStats({ companyInfo }) {
+  const [stats, setStats] = useState({
+    totalJobs: 0,
+    activeJobs: 0,
+    verifiedJobs: 0,
+    totalApplicants: 0
   });
-
-  // Mock data for graph - replace with actual data from API if available
-  const mockData = [
-    { name: 'Jan', jobs: 65 },
-    { name: 'Feb', jobs: 78 },
-    { name: 'Mar', jobs: 90 },
-    { name: 'Apr', jobs: 81 },
-    { name: 'May', jobs: 86 },
-    { name: 'Jun', jobs: 95 },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [recentJobs, setRecentJobs] = useState([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      const response = await fetch(`${base_url}/api/company/stats`);
-      const data = await response.json();
-      setStats(data.stats);
+    const fetchCompanyStats = async () => {
+      try {
+        // If companyInfo is not provided, show an error
+        if (!companyInfo) {
+          setError("Company information not available. Please try again later.");
+          setLoading(false);
+          return;
+        }
+
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          setError("Authentication required. Please log in again.");
+          setLoading(false);
+          return;
+        }
+
+        // Fetch company's jobs
+        const response = await axios.get('http://localhost:5000/api/company/get-jobs', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.data && Array.isArray(response.data.jobs)) {
+          const jobs = response.data.jobs;
+          
+          // Calculate total applicants across all jobs
+          const applicantsCount = jobs.reduce((total, job) => {
+            return total + (job.applicants ? job.applicants.length : 0);
+          }, 0);
+          
+          // Set stats
+          setStats({
+            totalJobs: jobs.length,
+            activeJobs: jobs.filter(job => job.status === 'active').length,
+            verifiedJobs: jobs.filter(job => job.verified === true).length,
+            totalApplicants: applicantsCount
+          });
+          
+          // Get 3 most recent jobs
+          const sortedJobs = [...jobs].sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          setRecentJobs(sortedJobs.slice(0, 3));
+        }
+      } catch (err) {
+        console.error("Error fetching company stats:", err);
+        setError("Failed to load dashboard statistics.");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchStats();
+    fetchCompanyStats();
   }, []);
 
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading dashboard statistics...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <AlertCircle size={48} />
+        <h3>Error Loading Dashboard</h3>
+        <p>{error}</p>
+        <button 
+          className="retry-button"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="dashboard-container">
-      {/* Hero Section */}
-      <div className="hero-section">
-        <h1>Company Dashboard</h1>
-        <p>Track your company's performance and growth metrics</p>
+    <div className="dashboard-stats">
+      <div className="welcome-section">
+        <h1>Welcome, {companyInfo?.name || companyInfo?.companyName || 'Company'}</h1>
+        <p>Here's an overview of your job postings and applicants</p>
+      </div>
+
+      {/* Company Profile Card */}
+      <div className="company-profile-card">
+        <div className="profile-header">
+          <h2>Company Profile</h2>
+        </div>
+        <div className="profile-content">
+          <div className="profile-info">
+            <div className="info-item">
+              <Building2 size={18} />
+              <span>Name: {companyInfo?.name || 'Not specified'}</span>
+            </div>
+            <div className="info-item">
+              <Mail size={18} />
+              <span>Email: {companyInfo?.email || 'Not specified'}</span>
+            </div>
+            {companyInfo?.location && (
+              <div className="info-item">
+                <MapPin size={18} />
+                <span>Address: {companyInfo.location}</span>
+              </div>
+            )}
+            {companyInfo?.website && (
+              <div className="info-item">
+                <Globe size={18} />
+                <span>Website: {companyInfo.website}</span>
+              </div>
+            )}
+            {companyInfo?.phoneNumber && (
+              <div className="info-item">
+                <Phone size={18} />
+                <span>Phone: {companyInfo.phoneNumber}</span>
+              </div>
+            )}
+            {companyInfo?.createdAt && (
+              <div className="info-item">
+                <Calendar size={18} />
+                <span>Member since: {formatDate(companyInfo.createdAt)}</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="stats-grid">
+      <div className="stats-cards">
         <div className="stat-card">
           <div className="stat-icon">
-            <Briefcase className="icon" size={24} />
+            <Briefcase size={24} />
           </div>
           <div className="stat-details">
-            <h3>Available Jobs</h3>
-            <p className="stat-number">{stats.jobCount}</p>
-            <span className="stat-label">Total positions</span>
+            <h3>{stats.totalJobs}</h3>
+            <p>Total Jobs Posted</p>
           </div>
         </div>
 
         <div className="stat-card">
           <div className="stat-icon">
-            <Users className="icon" size={24} />
+            <Clock size={24} />
           </div>
           <div className="stat-details">
-            <h3>Users</h3>
-            <p className="stat-number">{stats.userCount}</p>
-            <span className="stat-label">Registered users</span>
+            <h3>{stats.activeJobs}</h3>
+            <p>Active Jobs</p>
           </div>
         </div>
 
         <div className="stat-card">
           <div className="stat-icon">
-            <TrendingUp className="icon" size={24} />
+            <CheckCircle size={24} />
           </div>
           <div className="stat-details">
-            <h3>Active Jobs</h3>
-            <p className="stat-number">{stats.activeJobs}</p>
-            <span className="stat-label">Current active</span>
+            <h3>{stats.verifiedJobs}</h3>
+            <p>Verified Jobs</p>
           </div>
         </div>
 
         <div className="stat-card">
           <div className="stat-icon">
-            <DollarSign className="icon" size={24} />
+            <Users size={24} />
           </div>
           <div className="stat-details">
-            <h3>Revenue</h3>
-            <p className="stat-number"></p>
-            <span className="stat-label">Total earnings</span>
+            <h3>{stats.totalApplicants}</h3>
+            <p>Total Applicants</p>
           </div>
         </div>
       </div>
 
-      {/* Graph Section */}
-      <div className="graph-section">
-        <h2>Job Postings Trend</h2>
-        <div className="graph-container">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mockData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Line 
-                type="monotone" 
-                dataKey="jobs" 
-                stroke="#4F46E5" 
-                strokeWidth={2}
-                dot={{ fill: '#4F46E5' }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+      {/* Recent Jobs */}
+      <div className="recent-jobs-section">
+        <h2>Recent Job Postings</h2>
+        {recentJobs.length > 0 ? (
+          <div className="recent-jobs-list">
+            {recentJobs.map(job => (
+              <div key={job._id} className="recent-job-card">
+                <div className="job-title">
+                  <Briefcase size={18} />
+                  <h3>{job.jobTitle}</h3>
+                </div>
+                <div className="job-meta">
+                  <div className="meta-item">
+                    <Calendar size={16} />
+                    <span>Posted: {formatDate(job.createdAt)}</span>
+                  </div>
+                  <div className="verification-status">
+                    {job.verified ? (
+                      <div className="verified-badge">
+                        <CheckCircle size={16} />
+                        <span>Verified</span>
+                      </div>
+                    ) : (
+                      <div className="unverified-badge">
+                        <span>Pending Verification</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="applicants-count">
+                  <Users size={16} />
+                  <span>{job.applicants ? job.applicants.length : 0} Applicants</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="no-jobs-message">
+            <p>You haven't posted any jobs yet.</p>
+            <button 
+              className="post-job-button"
+              onClick={() => window.location.href = '/company-dashboard?tab=postJob'}
+            >
+              Post Your First Job
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default CompanyStats;
+}
