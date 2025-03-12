@@ -318,7 +318,7 @@
 //   );
 // }
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -326,6 +326,7 @@ import { useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import "./userSignup.css";
 import axios from "axios";
+import { toast } from 'react-toastify';
 
 const base_url = "http://localhost:5000";
 
@@ -379,66 +380,53 @@ export default function UserAuthForm() {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     try {
-      const response = await axios.post(`${base_url}/api/user/forgot-password`, {
-        email: forgotPasswordEmail,
-      });
-      if (response.status === 200) {
-        alert(response.data.message || "Password reset OTP sent to your email!");
-        setShowResetForm(true);
-      }
+      const response = await axios.post(
+        `${base_url}/api/user/forgot-password`,
+        { email: forgotPasswordEmail }
+      );
+      toast.info(response.data.message || "Password reset OTP sent to your email!");
+      setShowResetForm(true);
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        "Error sending reset OTP. Please try again.";
-      alert(errorMessage);
-    } finally {
-      setIsLoading(false);
+      const errorMessage = error.response?.data?.message || "Failed to send reset OTP";
+      toast.error(errorMessage);
     }
   };
 
   const handlePasswordReset = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmNewPassword) {
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
-    setIsLoading(true);
     try {
-      const response = await axios.post(`${base_url}/api/user/reset-password`, {
-        email: forgotPasswordEmail,
-        otp: resetOTP,
-        newPassword,
-      });
-      if (response.status === 200) {
-        alert("Password has been successfully reset!");
-        setIsForgotPassword(false);
-        setShowResetForm(false);
-        setActiveTab("login");
-      }
+      const response = await axios.post(
+        `${base_url}/api/user/reset-password`,
+        {
+          email: forgotPasswordEmail,
+          otp: resetOTP,
+          newPassword,
+        }
+      );
+      toast.success("Password has been successfully reset!");
+      setIsForgotPassword(false);
+      setShowResetForm(false);
     } catch (error) {
-      alert("Error resetting password. Please try again.");
-    } finally {
-      setIsLoading(false);
+      toast.error("Error resetting password. Please try again.");
     }
   };
 
   const onSubmitSignup = async (data) => {
-    setIsLoading(true);
     try {
-      const response = await axios.post(`${base_url}/api/user/register`, data);
-      if (response.status === 200) {
-        alert(response.data.message);
-        setSignupData(data);
-        setIsVerifying(true);
-      } else {
-        alert("An unexpected error occurred. Please try again.");
-      }
+      const response = await axios.post(
+        `${base_url}/api/user/register`,
+        data
+      );
+      toast.success(response.data.message);
+      setSignupData(data);
+      setIsVerifying(true);
     } catch (error) {
-      alert("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
+      toast.error("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -448,50 +436,62 @@ export default function UserAuthForm() {
         email: signupData.email,
         otp: enteredOTP,
         name: signupData.fullName,
-        password: signupData.password,
+        password: signupData.password
       });
 
       if (response.status === 200) {
-        const { token, fullName } = response.data;
+        const { token, userName } = response.data;
         localStorage.setItem("authToken", token);
-        localStorage.setItem("fullName", fullName);
-
-        alert("Signup successful!");
+        localStorage.setItem("userName", userName);
+        toast.success("Signup successful!");
         navigate("/user-dashboard");
       }
     } catch (error) {
-      alert(
-        error.response?.data?.message || "Incorrect OTP. Please try again."
-      );
+      const errorMessage = error.response?.data?.message || "Invalid verification code.";
+      toast.error(errorMessage);
     }
   };
 
   const onSubmitLogin = async (data) => {
-    setIsLoading(true);
     try {
       const response = await axios.post(`${base_url}/api/user/login`, data);
 
       if (response.status === 200) {
-        const { token, fullName } = response.data;
+        const { token, userName } = response.data;
         localStorage.setItem("authToken", token);
-        localStorage.setItem("fullName", fullName);
-
-        alert("Login successful!");
-        navigate("/user-dashboard");
+        localStorage.setItem("userName", userName);
+        toast.success("Login successful!");
+        navigate("/user-dashboard", { replace: true });
       }
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        "Login failed. Please check your credentials.";
-      alert(errorMessage);
-    } finally {
-      setIsLoading(false);
+      const errorMessage = error.response?.data?.message || "Login failed. Please check your credentials.";
+      toast.error(errorMessage);
     }
   };
 
   const handleGoogleLogin = (credentialResponse) => {
-    console.log("Google Login Successful:", credentialResponse);
+    if (credentialResponse.credential) {
+      // Handle successful Google login
+      toast.success("Google Login successful!");
+      // Add your Google login logic here
+    } else {
+      toast.error("Google Login failed. Please try again.");
+    }
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      try {
+        const tokenData = JSON.parse(atob(token.split('.')[1]));
+        if (tokenData.exp * 1000 > Date.now()) {
+          navigate("/user-dashboard", { replace: true });
+        }
+      } catch (error) {
+        localStorage.removeItem("authToken");
+      }
+    }
+  }, [navigate]);
 
   return (
     <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">

@@ -6,7 +6,9 @@ const CourseSchema = new mongoose.Schema({
     category: { type: String, required: true },
     duration: { type: String, required: true },
     thumbnail: { type: String }, // Stores image filename or URL
-    courseLink: { type: String, required: true } // Stores the link to the course (e.g., YouTube, Udemy, etc.)
+    courseLink: { type: String }, // Stores the link to the course (e.g., Udemy, etc.)
+    youtubeUrl: { type: String }, // Stores the YouTube video URL
+    skills: [{ type: String, required: true }] // Array of skills covered in the course
 }, { timestamps: true });
 
 module.exports = mongoose.model('Course', CourseSchema);

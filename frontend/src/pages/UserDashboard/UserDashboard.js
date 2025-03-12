@@ -1,4 +1,9 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate, Navigate } from "react-router-dom";
+import Profile from "../UserProfile/Profile";
+import "./UserDashboard.css";
+import { toast } from 'react-toastify';
 
 import {
   Briefcase,
@@ -11,27 +16,26 @@ import {
   ChevronRight,
   Calendar,
   Award,
-  TrendingUp
+  TrendingUp,
+  Settings,
+  Users,
+  Medal,
+  MessageSquare,
+  Bot,
+  Send,
+  X
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
-import "../UserDashboard/userdcss/userd.css";
+
 import Chatbot from "../CHATBOT/Chatbot";
 
-
-
-
-
-
-const userProfile = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  skills: ["JavaScript", "React", "Python"],
-  profilePicture: "./man.png",
-  recentActivity: [
-    "Completed React Certification",
-    "Applied for Frontend Developer role at TechCorp",
-  ],
+// Initial profile state
+const initialProfileState = {
+  name: "",
+  email: "",
+  skills: [],
+  profilePicture: null,
+  recentActivity: []
 };
 
 // Task Item Component
@@ -55,8 +59,8 @@ const LearningPathItem = ({ path, onContinue }) => (
     <p>Provider: {path.provider}</p>
     <p>Progress: {path.progress}%</p>
     <div className="progresso_barz">
-      <div 
-        className="progresso_fillz" 
+      <div
+        className="progresso_fillz"
         style={{ width: `${path.progress}%` }}
       ></div>
     </div>
@@ -89,36 +93,88 @@ const ProfileDropdown = ({
   handleDropdownToggle,
   navigate,
   handleLogout,
-}) => (
-  <div className="profilio_dropdownz">
-    <div className="profilio_triggerz" onClick={handleDropdownToggle}>
-      <img
-        src={userProfile.profilePicture}
-        alt="Profile"
-        className="profilio_picz"
-      />
-      <span className="profilio_namez">{userProfile.name}</span>
-    </div>
-    {isDropdownOpen && (
-      <div className="dropdownio_menuz">
-        <div className="dropdownio_headerz">
-          <div className="dropdownio_profilio_infoz">
-            <p className="dropdownio_emailz">{userProfile.email}</p>
-          </div>
-        </div>
-        <div className="dropdownio_dividerz"></div>
-        <button onClick={() => navigate("/profile")}>View Profile</button>
+  setActiveTab,
+}) => {
+  const base_url = "http://localhost:5000";
 
-        <button onClick={() => navigate("/settings")}>Account Settings</button>
-        <div className="dropdownio_dividerz"></div>
-        <button className="logouto_btnz" onClick={handleLogout}>
-          <LogOut className="iconz" />
-          Logout
-        </button>
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const dropdown = document.querySelector('.profilio_dropdownz');
+      if (dropdown && !dropdown.contains(event.target) && isDropdownOpen) {
+        handleDropdownToggle();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownOpen, handleDropdownToggle]);
+
+  return (
+    <div className="profilio_dropdownz">
+      <div
+        className="profilio_triggerz"
+        onClick={handleDropdownToggle}
+        role="button"
+        tabIndex={0}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            handleDropdownToggle();
+          }
+        }}
+      >
+        <img
+          src={userProfile.profilePicture
+            ? `${base_url}${userProfile.profilePicture}`
+            : `${process.env.PUBLIC_URL}/default-avatar.png`}
+          alt={`${userProfile.name}'s profile`}
+          className="profilio_picz"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = `${process.env.PUBLIC_URL}/default-avatar.png`;
+          }}
+        />
+        <span className="profilio_namez">{userProfile.name}</span>
       </div>
-    )}
-  </div>
-);
+      {isDropdownOpen && (
+        <div className="dropdownio_menuz">
+          <div className="dropdownio_headerz">
+            <div className="dropdownio_profilio_infoz">
+              <img
+                src={userProfile.profilePicture
+                  ? `${base_url}${userProfile.profilePicture}`
+                  : `${process.env.PUBLIC_URL}/default-avatar.png`}
+                alt="Profile"
+                className="dropdownio_profilio_picz"
+              />
+              <div className="dropdownio_userz_infoz">
+                <h4>{userProfile.name}</h4>
+                <p className="dropdownio_emailz">{userProfile.email}</p>
+              </div>
+            </div>
+          </div>
+          <div className="dropdownio_dividerz"></div>
+          <button
+            className="dropdownio_optionz"
+            onClick={() => setActiveTab("profile")}
+          >
+            <User size={16} />
+            View Profile
+          </button>
+
+          <div className="dropdownio_dividerz"></div>
+          <button
+            className="dropdownio_optionz logouto_btnz"
+            onClick={handleLogout}
+          >
+            <LogOut size={16} />
+            Logout
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Dashboard Stats Component
 const DashboardStats = () => (
@@ -147,6 +203,272 @@ const DashboardStats = () => (
   </div>
 );
 
+// Session timeout duration (30 minutes)
+const SESSION_TIMEOUT = 30 * 60 * 1000;
+
+// Overview Component
+const OverviewSection = ({ userProfile, stats, learningPaths }) => (
+  <div className="contentio_sectionz">
+    <h2>Dashboard Overview</h2>
+    <div className="overview_statsz">
+      <div className="statio_cardz">
+        <TrendingUp className="statio_iconz" />
+        <div className="statio_infoz">
+          <h3>{userProfile.skills.length}</h3>
+          <p>Skills Added</p>
+        </div>
+      </div>
+      <div className="statio_cardz">
+        <Award className="statio_iconz" />
+        <div className="statio_infoz">
+          <h3>{learningPaths.filter(path => path.progress === 100).length}</h3>
+          <p>Courses Completed</p>
+        </div>
+      </div>
+      <div className="statio_cardz">
+        <Users className="statio_iconz" />
+        <div className="statio_infoz">
+          <h3>{stats.connections || 0}</h3>
+          <p>Network Connections</p>
+        </div>
+      </div>
+    </div>
+
+    <div className="overview_gridz">
+      <div className="overview_cardz">
+        <h3>Recent Activity</h3>
+        <div className="activity_listz">
+          {userProfile.recentActivity.length > 0 ? (
+            userProfile.recentActivity.map((activity, index) => (
+              <div key={index} className="activity_itemz">
+                <div className="activity_iconz">
+                  {activity.type === 'course' && <Book size={16} />}
+                  {activity.type === 'skill' && <Target size={16} />}
+                  {activity.type === 'job' && <Briefcase size={16} />}
+                </div>
+                <div className="activity_contentz">
+                  <p>{activity.description}</p>
+                  <span>{new Date(activity.date).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="no_activityz">No recent activity</p>
+          )}
+        </div>
+      </div>
+
+      <div className="overview_cardz">
+        <h3>Skill Progress</h3>
+        <div className="skills_listz">
+          {userProfile.skills.map((skill, index) => (
+            <div key={index} className="skill_itemz">
+              <div className="skill_infoz">
+                <span>{skill.name}</span>
+                <span>{skill.level}%</span>
+              </div>
+              <div className="progresso_barz">
+                <div
+                  className="progresso_fillz"
+                  style={{ width: `${skill.level}%` }}
+                ></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Achievements Component
+const AchievementsSection = ({ achievements }) => (
+  <div className="contentio_sectionz">
+    <h2>Achievements & Badges</h2>
+    <div className="achievements_gridz">
+      <div className="achievement_cardz">
+        <h3>Skill Badges</h3>
+        <div className="badges_gridz">
+          {achievements.skillBadges?.map((badge, index) => (
+            <div key={index} className="badge_itemz">
+              <div className="badge_iconz">
+                <Medal size={32} />
+              </div>
+              <h4>{badge.name}</h4>
+              <p>{badge.description}</p>
+              <span className="badge_levelz">{badge.level}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="achievement_cardz">
+        <h3>Certifications</h3>
+        <div className="certifications_listz">
+          {achievements.certifications?.map((cert, index) => (
+            <div key={index} className="certification_itemz">
+              <div className="cert_iconz">
+                <Award size={24} />
+              </div>
+              <div className="cert_infoz">
+                <h4>{cert.name}</h4>
+                <p>{cert.provider}</p>
+                <span>{new Date(cert.dateEarned).toLocaleDateString()}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="achievement_cardz">
+        <h3>Leaderboard</h3>
+        <div className="leaderboard_listz">
+          {achievements.leaderboard?.map((entry, index) => (
+            <div key={index} className="leaderboard_itemz">
+              <span className="rank_numberz">{index + 1}</span>
+              <div className="user_infoz">
+                <h4>{entry.name}</h4>
+                <p>{entry.points} points</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Community Component
+const CommunitySection = ({ stats, connections }) => (
+  <div className="contentio_sectionz">
+    <h2>Community & Networking</h2>
+    <div className="community_gridz">
+      <div className="community_cardz">
+        <h3>Your Network</h3>
+        <div className="network_statsz">
+          <div className="stat_itemz">
+            <Users className="stat_iconz" />
+            <div className="stat_infoz">
+              <h4>{stats.connections}</h4>
+              <p>Connections</p>
+            </div>
+          </div>
+          <div className="stat_itemz">
+            <MessageSquare className="stat_iconz" />
+            <div className="stat_infoz">
+              <h4>{stats.discussions}</h4>
+              <p>Discussions</p>
+            </div>
+          </div>
+          <div className="stat_itemz">
+            <Award className="stat_iconz" />
+            <div className="stat_infoz">
+              <h4>{stats.endorsements}</h4>
+              <p>Endorsements</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="community_cardz">
+        <h3>Recent Connections</h3>
+        <div className="connections_listz">
+          {connections?.map((connection, index) => (
+            <div key={index} className="connection_itemz">
+              <img
+                src={connection.profilePicture || '/default-avatar.png'}
+                alt={connection.name}
+                className="connection_avatarz"
+              />
+              <div className="connection_infoz">
+                <h4>{connection.name}</h4>
+                <p>{connection.title}</p>
+              </div>
+              <button className="btn_messagez">
+                <MessageSquare size={16} />
+                Message
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="community_cardz">
+        <h3>Skill Endorsements</h3>
+        <div className="endorsements_listz">
+          {stats.topEndorsedSkills?.map((skill, index) => (
+            <div key={index} className="endorsement_itemz">
+              <div className="skill_headerz">
+                <h4>{skill.name}</h4>
+                <span>{skill.endorsements} endorsements</span>
+              </div>
+              <div className="endorsers_listz">
+                {skill.topEndorsers?.slice(0, 3).map((endorser, idx) => (
+                  <img
+                    key={idx}
+                    src={endorser.profilePicture || '/default-avatar.png'}
+                    alt={endorser.name}
+                    className="endorser_avatarz"
+                    title={endorser.name}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Floating AI Assistant Component
+const FloatingAssistant = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Handle message submission
+    console.log("Message submitted:", message);
+    setMessage("");
+  };
+
+  return (
+    <div className="floating_assistantz">
+      <button
+        className="assistant_triggerz"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle AI Assistant"
+      >
+        <Bot className="ai_iconz" />
+      </button>
+
+      <div className={`assistant_containerz ${!isOpen ? 'hidden' : ''}`}>
+        <div className="assistant_headerz">
+          <h3>AI Assistant</h3>
+          <button onClick={() => setIsOpen(false)}>
+            <X size={20} />
+          </button>
+        </div>
+        <div className="assistant_contentz">
+          <Chatbot />
+        </div>
+        <form className="assistant_inputz" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type your message..."
+          />
+          <button type="submit">
+            <Send size={20} />
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 // Main Dashboard Component
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -154,6 +476,14 @@ export default function UserDashboard() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState(2);
   const [jobApplicationStatus, setJobApplicationStatus] = useState(null);
+  const [userProfile, setUserProfile] = useState(initialProfileState);
+  const [error, setError] = useState(null);
+  const [achievements, setAchievements] = useState([]);
+  const [communityStats, setCommunityStats] = useState({
+    connections: 0,
+    endorsements: 0,
+    discussions: 0
+  });
 
   // Initial States
   const [tasks, setTasks] = useState([
@@ -230,7 +560,7 @@ export default function UserDashboard() {
       status: "Not Started",
     },
   ]);
-  
+
 
   const [learningPaths, setLearningPaths] = useState([
     { id: 1, course: "Advanced React", provider: "Udemy", progress: 70 },
@@ -242,7 +572,7 @@ export default function UserDashboard() {
     { id: 7, course: "Introduction to Cybersecurity", provider: "edX", progress: 80 },
     { id: 8, course: "Data Visualization with D3.js", provider: "Pluralsight", progress: 10 },
   ]);
-  
+
 
   const [recommendedJobs, setRecommendedJobs] = useState([]);
 
@@ -250,10 +580,87 @@ export default function UserDashboard() {
 
   // Auth Check Effect
   useEffect(() => {
-    const authToken = localStorage.getItem("authToken");
-    if (!authToken) {
-      navigate("/user-signup");
-    }
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          navigate("/user-signup");
+          return;
+        }
+
+        // Log decoded token data to show user-specific information
+        const tokenData = JSON.parse(atob(token.split('.')[1]));
+        console.log('Current user ID:', tokenData.userId);
+
+        // Check if token is expired
+        if (tokenData.exp * 1000 < Date.now()) {
+          console.log('Token expired, logging out');
+          handleLogout();
+          return;
+        }
+
+        // Fetch user profile with error handling and retry logic
+        const fetchWithRetry = async (url, options, retries = 3) => {
+          try {
+            const response = await axios.get(url, options);
+            return response.data;
+          } catch (error) {
+            if (retries > 0 && error.response?.status === 429) {
+              // Wait for 1 second before retrying
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              return fetchWithRetry(url, options, retries - 1);
+            }
+            throw error;
+          }
+        };
+
+        const headers = { Authorization: `Bearer ${token}` };
+
+        // Fetch all user data in parallel
+        const [profileData, tasksData, learningPathsData] = await Promise.all([
+          fetchWithRetry(`${base_url}/api/user/profile`, { headers }),
+          fetchWithRetry(`${base_url}/api/user/tasks`, { headers }),
+          fetchWithRetry(`${base_url}/api/user/learning-paths`, { headers })
+        ]);
+
+        console.log('Fetched user-specific data:', {
+          profile: profileData,
+          tasks: tasksData,
+          learningPaths: learningPathsData
+        });
+
+        // Update state with fetched data
+        setTasks(tasksData);
+        setLearningPaths(learningPathsData);
+
+        // Update user profile data with validation
+        if (profileData && typeof profileData === 'object') {
+          setUserProfile({
+            name: profileData.name || 'Unknown User',
+            email: profileData.email || '',
+            skills: Array.isArray(profileData.skills) ? profileData.skills : [],
+            profilePicture: profileData.profilePicture || null,
+            recentActivity: Array.isArray(profileData.recentActivity) ? profileData.recentActivity : []
+          });
+        } else {
+          console.error('Invalid profile data received:', profileData);
+          throw new Error('Invalid profile data');
+        }
+
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+
+        if (error.response?.status === 401) {
+          handleLogout();
+          return;
+        }
+
+        // Show error notification to user
+        setError('Failed to load dashboard data. Please refresh the page or contact support.');
+      }
+    };
+
+    fetchUserData();
   }, [navigate]);
 
   // Fetch Jobs Effect
@@ -277,21 +684,81 @@ export default function UserDashboard() {
     fetchRecommendedJobs();
   }, []);
 
+  // Session timeout handler
+  useEffect(() => {
+    let timeoutId;
+
+    const resetTimeout = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        handleLogout();
+        toast.error("Session expired. Please login again.");
+      }, SESSION_TIMEOUT);
+    };
+
+    // Add event listeners for user activity
+    const handleUserActivity = () => {
+      resetTimeout();
+    };
+
+    window.addEventListener('mousemove', handleUserActivity);
+    window.addEventListener('keypress', handleUserActivity);
+    window.addEventListener('click', handleUserActivity);
+    window.addEventListener('scroll', handleUserActivity);
+
+    // Initial timeout
+    resetTimeout();
+
+    // Cleanup
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('mousemove', handleUserActivity);
+      window.removeEventListener('keypress', handleUserActivity);
+      window.removeEventListener('click', handleUserActivity);
+      window.removeEventListener('scroll', handleUserActivity);
+    };
+  }, []);
+
   // Event Handlers
   const handleDropdownToggle = () => setIsDropdownOpen(!isDropdownOpen);
 
-  const handleTaskCompletion = (taskId) => {
-    const updatedTasks = tasks.map((task) =>
-      task.id === taskId ? { ...task, status: "Completed" } : task
-    );
-    setTasks(updatedTasks);
+  const handleTaskCompletion = async (taskId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.put(
+        `${base_url}/api/user/tasks/${taskId}`,
+        { status: "Completed" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const updatedTasks = tasks.map((task) =>
+        task.id === taskId ? { ...task, status: "Completed" } : task
+      );
+      setTasks(updatedTasks);
+    } catch (error) {
+      toast.error("Failed to update task status");
+    }
   };
 
-  const handleLearningPathContinue = (pathId) => {
-    const updatedPaths = learningPaths.map((path) =>
-      path.id === pathId ? { ...path, progress: Math.min(path.progress + 10, 100) } : path
-    );
-    setLearningPaths(updatedPaths);
+  const handleLearningPathContinue = async (pathId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const path = learningPaths.find((p) => p.id === pathId);
+      const newProgress = Math.min(path.progress + 10, 100);
+
+      await axios.put(
+        `${base_url}/api/user/learning-paths/${pathId}`,
+        { progress: newProgress },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const updatedPaths = learningPaths.map((path) =>
+        path.id === pathId ? { ...path, progress: newProgress } : path
+      );
+      setLearningPaths(updatedPaths);
+    } catch (error) {
+      toast.error("Failed to update progress");
+    }
   };
 
   const handleJobApplication = (jobId) => {
@@ -300,13 +767,37 @@ export default function UserDashboard() {
   };
 
   const handleLogout = () => {
+    // Clear all user-specific data
+    setUserProfile(initialProfileState);
+    setTasks([]);
+    setLearningPaths([]);
+    setRecommendedJobs([]);
+    setJobApplicationStatus(null);
+
+    // Clear session storage and local storage
     localStorage.removeItem("authToken");
+    sessionStorage.clear();
+
+    // Log the logout event
+    console.log('User logged out at:', new Date().toISOString());
+
+    // Navigate to home
     navigate("/");
   };
 
   // Render Content Based on Active Tab
   const renderContent = () => {
     switch (activeTab) {
+      case "overview":
+        return (
+          <OverviewSection
+            userProfile={userProfile}
+            stats={communityStats}
+            learningPaths={learningPaths}
+          />
+        );
+      case "profile":
+        return <Profile userProfile={userProfile} />;
       case "tasks":
         return (
           <div className="contentio_sectionz">
@@ -338,7 +829,6 @@ export default function UserDashboard() {
           </div>
         );
       case "recommendedJobs":
-
         return (
           <div className="contentio_sectionz">
             <h2>Recommended Jobs</h2>
@@ -362,15 +852,29 @@ export default function UserDashboard() {
             )}
           </div>
         );
-        case "chatbot":
-  return (
-    <div className="contentio_sectionz chatbot-container">
-      <h2>AI Chatbot Assistant</h2>
-      <Chatbot />
-    </div>
-  );
+      case "achievements":
+        return <AchievementsSection achievements={achievements} />;
+      case "community":
+        return (
+          <CommunitySection
+            stats={communityStats}
+            connections={userProfile.connections || []}
+          />
+        );
+      case "chatbot":
+        return (
+          <div className="contentio_sectionz chatbot-container">
+            <h2>AI Assistant</h2>
+            <Chatbot />
+          </div>
+        );
       default:
-        return <div>Invalid tab selected</div>;
+        return (
+          <div className="contentio_sectionz">
+            <h2>Welcome to Your Dashboard</h2>
+            <p>Select a section from the sidebar to get started.</p>
+          </div>
+        );
     }
   };
 
@@ -380,31 +884,28 @@ export default function UserDashboard() {
         <div className="sidebario_headerz">
           <h2>User Portal</h2>
         </div>
-        
+
         <div className="sidebario_menuz">
-          {["tasks", "learningPaths", "recommendedJobs", "chatbot"].map((tab, index) => (
+          {[
+            { id: "overview", label: "Overview", icon: TrendingUp },
+            { id: "profile", label: "Profile", icon: User },
+            { id: "tasks", label: "Tasks", icon: CheckSquare },
+            { id: "learningPaths", label: "Learning Paths", icon: Book },
+            { id: "recommendedJobs", label: "Jobs", icon: Briefcase },
+            { id: "achievements", label: "Achievements", icon: Medal },
+            { id: "chatbot", label: "AI Assistant", icon: Target }
+          ].map((item) => (
             <button
-            key={index}
-            className={`menuz_itemz ${activeTab === tab ? "activio" : ""}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === "tasks" && <CheckSquare className="menuz_iconz" />}
-            {tab === "learningPaths" && <Book className="menuz_iconz" />}
-            {tab === "recommendedJobs" && <Target className="menuz_iconz" />}
-            {tab === "chatbot" && <User className="menuz_iconz" />} 
-            <span>
-              {tab === "tasks"
-                ? "Tasks"
-                : tab === "learningPaths"
-                ? "Learning Paths"
-                : tab === "recommendedJobs"
-                ? "Jobs"
-                : "Chatbot"} {/* ✅ Fix menu name */}
-            </span>
-            <ChevronRight className="arrowo_iconz" />
-          </button>
-          
+              key={item.id}
+              className={`menuz_itemz ${activeTab === item.id ? "activio" : ""}`}
+              onClick={() => setActiveTab(item.id)}
+            >
+              <item.icon className="menuz_iconz" />
+              <span>{item.label}</span>
+              <ChevronRight className="arrowo_iconz" />
+            </button>
           ))}
+          <div className="menuz_dividerz"></div>
           <button className="menuz_itemz logouto_btnz" onClick={handleLogout}>
             <LogOut className="menuz_iconz" />
             <span>Logout</span>
@@ -418,18 +919,15 @@ export default function UserDashboard() {
             <h1>Welcome back!</h1>
             <p>Let's continue your professional journey</p>
           </div>
-          
-          <div className="headerio_rightz">
-            <div className="notifio_bellz">
 
-            </div>
-            
+          <div className="headerio_rightz">
             <ProfileDropdown
               userProfile={userProfile}
               isDropdownOpen={isDropdownOpen}
               handleDropdownToggle={handleDropdownToggle}
               navigate={navigate}
               handleLogout={handleLogout}
+              setActiveTab={setActiveTab}
             />
           </div>
         </header>
@@ -442,6 +940,9 @@ export default function UserDashboard() {
           {renderContent()}
         </section>
       </main>
+
+      <FloatingAssistant />
     </div>
   );
 }
+  
